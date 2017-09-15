@@ -2,10 +2,22 @@
 #include <sys/un.h>
 #include <utils/Errors.h>
 #include <utils/Log.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define UNIX_DOMAIN "/data/user/0/nativervc.domain"
 //#define LOG_NDEBUG 0
 //#define LOG_TAG "RvcTest"
+
+void show()
+{
+	printf("Input Track Params\n");
+	printf("a [angle]          |left track deflection angle, < 90.\n");
+	printf("b [oneMPercent]    |one meter line's percent from the bottom of the screen, < 100.\n");
+	printf("c [twoMPercent]    |two meter line's percent from the bottom of the screen, < 100.\n");
+	printf("d [threeMPercent]  |three meter line's percent from the bottom of the screen, < 100.\n");
+    printf("q                  |quit.\n");
+}
 
 int connect_socket() {
     int fd = -1;
@@ -36,24 +48,38 @@ int send_msg(int fd, void *msg, int size)
 
 int main(int argc, char** argv)
 {
+    show();
+    char input[10];
     int socketfd = -1;
-    while(true) {
+    bool stop = false;
+    while(!stop) {
         socketfd = connect_socket();
         if (socketfd < 0) {
 			continue;
 		} else {
 			ALOGD("Successfully connected to Rvc!");
 		}
-		bool flag = false;
-        while(!flag) {
-            char msg[4];
-			msg[0] = 60;
-			msg[1] = 20;
-			msg[2] = 30;
-			msg[3] = 40;
-            send_msg(socketfd, msg, 4);
-			//flag = true;
+        while(!stop) {
+            printf("->");
+            fgets(input, sizeof(input), stdin);
+            if ((input[1] != ' ') && (input[1] != '\n')) {
+                printf("Invalid params!\n");
+                continue;
+            }
+            switch(input[0]) {
+                case 'a':
+                case 'b':
+                case 'c':
+                case 'd':
+                    send_msg(socketfd, input, strlen(input)-1);
+                    break;
+                case 'q':
+                    stop = true;
+                    break;
+                default:
+                    printf("Invalid params!\n");
+                    break;
+            };
         }
-        //close(socketfd);
     }
 }

@@ -58,6 +58,10 @@ public:
     virtual ~RvcTrack();
     void setTrackParams(TrackParams_t* params);
     TrackParams_t getTrackParams();
+    void setAngle(int value);
+    void setOneMPercent(int value);
+    void setTwoMPercent(int value);
+    void setThreeMPercent(int value);
 
     virtual bool        threadLoop();
     virtual status_t    readyToRun();

@@ -285,6 +285,34 @@ TrackParams_t RvcTrack::getTrackParams() {
     return params;
 }
 
+void RvcTrack::setAngle(int value) {
+    mMutex->lock();
+    mTrackParams.angle = value;
+    mMutex->unlock();
+    ALOGD("setAngle angle=%d", mTrackParams.angle);
+}
+
+void RvcTrack::setOneMPercent(int value) {
+    mMutex->lock();
+    mTrackParams.oneMeterPercent = value;
+    mMutex->unlock();
+    ALOGD("setOneMPercent oneMeterPercent=%d", mTrackParams.oneMeterPercent);
+}
+
+void RvcTrack::setTwoMPercent(int value) {
+    mMutex->lock();
+    mTrackParams.twoMeterPercent = value;
+    mMutex->unlock();
+    ALOGD("setTwoMPercent twoMeterPercent=%d", mTrackParams.twoMeterPercent);
+}
+
+void RvcTrack::setThreeMPercent(int value) {
+    mMutex->lock();
+    mTrackParams.threeMeterPercent = value;
+    mMutex->unlock();
+    ALOGD("setThreeMPercent threeMeterPercent=%d", mTrackParams.threeMeterPercent);
+}
+
 void RvcTrack::draw() {
     // clear screen
     glShadeModel(GL_FLAT);

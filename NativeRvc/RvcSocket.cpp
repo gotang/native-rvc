@@ -43,7 +43,7 @@ status_t RvcSocket::readyToRun() {
 
 bool RvcSocket::threadLoop() {
     int socketfd = -1;
-    TrackParams_t params;
+    //TrackParams_t params;
     while(!exitPending()) {
         unlink(UNIX_DOMAIN);
         int server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -68,6 +68,28 @@ bool RvcSocket::threadLoop() {
                 ALOGE("socket is broken, re-connect.");
                 break;
             }
+            int value = 0;
+            switch(msg[0]) {
+                case 'a':
+                    value = atoi(&msg[2]);
+                    mRvcTrack->setAngle(value);
+                    break;
+                case 'b':
+                    value = atoi(&msg[2]);
+                    mRvcTrack->setOneMPercent(value);
+                    break;
+                case 'c':
+                    value = atoi(&msg[2]);
+                    mRvcTrack->setTwoMPercent(value);
+                    break;
+                case 'd':
+                    value = atoi(&msg[2]);
+                    mRvcTrack->setThreeMPercent(value);
+                    break;
+                default:
+                    break;
+            };
+#if 0
 			for (int i=0; i<numbytes; i++) {
 				if (i % TRACK_PARAMS_AGRC == 0) params.angle = msg[i];
 				if (i % TRACK_PARAMS_AGRC == 1) params.oneMeterPercent = msg[i];
@@ -77,6 +99,7 @@ bool RvcSocket::threadLoop() {
             		mRvcTrack->setTrackParams(&params);
 				}
 			}
+#endif
             checkExit();
         }
         close(socketfd);
