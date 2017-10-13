@@ -41,6 +41,17 @@ struct TrackParams_t {
     int oneMeterPercent;
     int twoMeterPercent;
     int threeMeterPercent;
+    int wheelBase;
+    int axialLength;
+    int rearAxle;
+    int camHeight;
+    int camVisualAngle;
+    int camHorAngle;
+};
+
+struct DynamicTrack_t {
+    int direction;
+    int angle;
 };
 
 namespace android {
@@ -62,6 +73,9 @@ public:
     void setOneMPercent(int value);
     void setTwoMPercent(int value);
     void setThreeMPercent(int value);
+    void adjustTrackParams(char adjustFlag, int value);
+    void setDynamicTrackParams(int direction, int angle);
+    void showAllRvcTrackParams();
 
     virtual bool        threadLoop();
     virtual status_t    readyToRun();
@@ -75,7 +89,11 @@ private:
     void init(int w=0, int h=0); // size of the inner bitmap
     void drawTrack(const TrackParams_t& params);
     void renderToGL(); // coordinate to the surface
-    void setPointsCoordinate(const TrackParams_t& params);
+    void setStaicCoordinate(const TrackParams_t& params);
+    void setDynamicCoordinate(const TrackParams_t& params);
+    double getGroundXCoordinate(double radius, double y);
+    double getScreenXCoordinate(double x, double y);
+    double getScreenYCoordinate(double y);
     struct Point {
         double fx;
         double fy;
@@ -91,6 +109,7 @@ private:
     sp<SurfaceControl> mFlingerSurfaceControl;
     sp<Surface> mFlingerSurface;
     TrackParams_t mTrackParams;
+    DynamicTrack_t mDynamicTrack;
     SkPaint  *mPaint;
     SkCanvas *mCanvas;
     SkBitmap *mBitmap;

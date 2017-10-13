@@ -18,7 +18,7 @@
 
 using namespace android;
 
-#define OPT_LIST "a:b:c:d:sh"
+#define OPT_LIST "a:b:c:d:L:W:D:H:M:N:sh"
 
 struct opt_args {
 	bool showUsage;
@@ -27,6 +27,12 @@ struct opt_args {
     int twoMPercent;
     int threeMPercent;
     bool useSocket;
+    int wheelBase;
+    int axialLength;
+    int rearAxle;
+    int camHeight;
+    int camVisualAngle;
+    int camHorAngle;
 };
 
 void show_usage(void)
@@ -37,6 +43,12 @@ void show_usage(void)
 	printf("    -b <oneMPercent>    one meter line's percent from the bottom of the screen, < 100, default 10.\n");
 	printf("    -c <twoMPercent>    two meter line's percent from the bottom of the screen, < 100, default 20.\n");
 	printf("    -d <threeMPercent>  three meter line's percent from the bottom of the screen, < 100, default 30.\n");
+    printf("    -L <wheelbase>      wheelbase(mm)\n");
+    printf("    -W <axiallength>    axial length(mm)\n");
+    printf("    -D <length>         The length of the rear axle from the end of the vehicle(mm).\n");
+    printf("    -H <height>         camera distance from ground(mm).\n");
+    printf("    -M <angle>          visual angle range of camera.\n");
+    printf("    -N <angle>          The angle between the camera center line and the horizontal plane.\n");
 	printf("    -s                  use socket to communicate with nativervc.\n");
 	printf("\n");
 }
@@ -52,33 +64,57 @@ int parse_args(int argc, char *argv[], struct opt_args* args)
 	while ((ch=getopt(argc, argv, OPT_LIST)) != -1) {
 		char * endch;
 		switch (ch) {
-		case 'h':
-			args->showUsage = true;
-			show_usage();
-			break;
-        case 'a':
-            args->angle = atoi(optarg);
-			if (args->angle > 90) err=1;
-            break;
-        case 'b':
-			args->oneMPercent = atoi(optarg);
-			if (args->oneMPercent < 0) err=1;
-            break;
-        case 'c':
-            args->twoMPercent = atoi(optarg);
-			if (args->twoMPercent < 0) err=1;
-            break;            
-		case 'd':
-			args->threeMPercent = atoi(optarg);
-			if (args->threeMPercent < 0) err=1;
-			break;
-		case 's':
-			args->useSocket = true;
-		    break;
-		default:
-			ch = optopt;
-			err = 1;
-			break;
+    		case 'h':
+    			args->showUsage = true;
+    			show_usage();
+    			break;
+            case 'a':
+                args->angle = atoi(optarg);
+    			if (args->angle > 90 || args->angle < 0) err=1;
+                break;
+            case 'b':
+    			args->oneMPercent = atoi(optarg);
+    			if (args->oneMPercent < 0) err=1;
+                break;
+            case 'c':
+                args->twoMPercent = atoi(optarg);
+    			if (args->twoMPercent < 0) err=1;
+                break;            
+    		case 'd':
+    			args->threeMPercent = atoi(optarg);
+    			if (args->threeMPercent < 0) err=1;
+    			break;
+    		case 's':
+    			args->useSocket = true;
+    		    break;
+            case 'L':
+                args->wheelBase = atoi(optarg);
+                if (args->wheelBase < 0) err=1;
+                break;
+            case 'W':
+                args->axialLength = atoi(optarg);
+                if (args->axialLength < 0) err=1;
+                break;
+            case 'D':
+                args->rearAxle = atoi(optarg);
+                if (args->rearAxle < 0) err=1;
+                break;
+            case 'H':
+                args->camHeight = atoi(optarg);
+                if (args->camHeight < 0) err=1;
+                break;
+            case 'M':
+                args->camVisualAngle = atoi(optarg);
+                if (args->camVisualAngle < 0) err=1;
+                break;
+            case 'N':
+                args->camHorAngle = atoi(optarg);
+                if (args->camHorAngle < 0) err=1;
+                break;
+    		default:
+    			ch = optopt;
+    			err = 1;
+    			break;
 		}
 		if (err) {
 			printf("Invalid option: -%c %s", ch, optarg);
@@ -114,6 +150,12 @@ int main(int argc, char** argv)
 	if (params.twoMeterPercent == 0) params.twoMeterPercent = 20;
     params.threeMeterPercent = args.threeMPercent;
 	if (params.threeMeterPercent == 0) params.threeMeterPercent = 30;
+    params.wheelBase = args.wheelBase;
+    params.axialLength= args.axialLength;
+    params.rearAxle = args.rearAxle;
+    params.camHeight = args.camHeight;
+    params.camVisualAngle = args.camVisualAngle;
+    params.camHorAngle = args.camHorAngle;
     sp<RvcTrack> track = new RvcTrack(params);
     if (args.useSocket) {
         sp<RvcSocket> socket = new RvcSocket(track);

@@ -4,10 +4,18 @@
 #include <utils/Log.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <termios.h>
 
 #define UNIX_DOMAIN "/data/user/0/nativervc.domain"
 //#define LOG_NDEBUG 0
 //#define LOG_TAG "RvcTest"
+
+enum {
+    UP_KEY = 0,
+    DOWN_KEY,
+    LEFT_KEY,
+    RIGHT_KEY,
+};
 
 void show()
 {
@@ -16,6 +24,11 @@ void show()
 	printf("b [oneMPercent]    |one meter line's percent from the bottom of the screen, < 100.\n");
 	printf("c [twoMPercent]    |two meter line's percent from the bottom of the screen, < 100.\n");
 	printf("d [threeMPercent]  |three meter line's percent from the bottom of the screen, < 100.\n");
+    printf("A                  |adjust track deflection angle by left key or right key.\n");
+    printf("B                  |adjust one meter line, must be up key or down key.\n");
+    printf("C                  |adjust two meter line, must be up key or down key.\n");
+    printf("D                  |adjust three meter line by up key or down key.\n");
+    printf("s                  |show all rvc track params.\n");
     printf("q                  |quit.\n");
 }
 
@@ -71,7 +84,46 @@ int main(int argc, char** argv)
                 case 'b':
                 case 'c':
                 case 'd':
+                case 's':
                     send_msg(socketfd, input, strlen(input)-1);
+                    break;
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                    char inputchar[2];
+                    inputchar[0] = input[0];
+                    char ch1, ch2;
+                    static struct termios oldt, newt;
+                    tcgetattr(0, &oldt);
+                    newt = oldt;
+                    newt.c_lflag &= ~(ICANON | ECHO);
+                    tcsetattr(0, TCSANOW, &newt);
+                    while ((ch1 = getchar()) != '\n') {
+                        ch2 = getchar();
+                        if (ch1 == 27 && ch2 == 91) {
+                            switch(getchar()){
+                               case 65:
+                                   inputchar[1] = UP_KEY;
+                                   break;
+                               case 66:
+                                   inputchar[1] = DOWN_KEY;
+                                   break;
+                               case 68:
+                                   inputchar[1] = LEFT_KEY;
+                                   break;
+                               case 67:
+                                   inputchar[1] = RIGHT_KEY;
+                                   break;
+                               default:
+                                   break;
+                            }       
+                            send_msg(socketfd, inputchar, sizeof(inputchar));
+                        } else {
+                            printf("Invalid params!\n");
+                        }
+                    }
+                    tcsetattr(0, TCSANOW, &oldt);
                     break;
                 case 'q':
                     stop = true;

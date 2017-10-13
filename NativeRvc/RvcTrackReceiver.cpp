@@ -1,5 +1,5 @@
 #define LOG_NDEBUG 0
-#define LOG_TAG "RvcSocket"
+#define LOG_TAG "RvcTrackReceiver"
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -8,9 +8,9 @@
 #include <utils/threads.h>
 #include <cutils/properties.h>
 
-#include "RvcSocket.hpp"
+#include "RvcTrackReceiver.hpp"
 
-#define UNIX_DOMAIN "/data/user/0/nativervc.domain"
+#define UNIX_DOMAIN "/data/user/0/nativervctrack.domain"
 #define RVC_EXIT_PROP "usr.rvc.exit"
 #define TRACK_PARAMS_AGRC 4
 
@@ -24,24 +24,24 @@ enum {
 namespace android {
 
 // ---------------------------------------------------------------------------
-RvcSocket::RvcSocket(const sp<RvcTrack>& track): Thread(false), mRvcTrack(track) {
-    ALOGD("RvcSocket::RvcSocket()");
+RvcTrackReceiver::RvcTrackReceiver(const sp<RvcTrack>& track): Thread(false), mRvcTrack(track) {
+    ALOGD("RvcTrackReceiver::RvcTrackReceiver()");
 }
 
-RvcSocket::~RvcSocket() {
+RvcTrackReceiver::~RvcTrackReceiver() {
 }
 
-void RvcSocket::onFirstRef() {
-    ALOGD("RvcSocket::onFirstRef()");
-    run("RvcSocket", PRIORITY_BACKGROUND);
+void RvcTrackReceiver::onFirstRef() {
+    ALOGD("RvcTrackReceiver::onFirstRef()");
+    run("RvcTrackReceiver", PRIORITY_BACKGROUND);
 }
 
-status_t RvcSocket::readyToRun() {
-    ALOGD("RvcSocket::readyToRun()");
+status_t RvcTrackReceiver::readyToRun() {
+    ALOGD("RvcTrackReceiver::readyToRun()");
     return NO_ERROR;
 }
 
-bool RvcSocket::threadLoop() {
+bool RvcTrackReceiver::threadLoop() {
     int socketfd = -1;
     while(!exitPending()) {
         unlink(UNIX_DOMAIN);
@@ -69,30 +69,10 @@ bool RvcSocket::threadLoop() {
             }
             int value = 0;
             switch(msg[0]) {
-                case 'a':
+                case 'l':
+                case 'r':
                     value = atoi(&msg[2]);
-                    mRvcTrack->setAngle(value);
-                    break;
-                case 'b':
-                    value = atoi(&msg[2]);
-                    mRvcTrack->setOneMPercent(value);
-                    break;
-                case 'c':
-                    value = atoi(&msg[2]);
-                    mRvcTrack->setTwoMPercent(value);
-                    break;
-                case 'd':
-                    value = atoi(&msg[2]);
-                    mRvcTrack->setThreeMPercent(value);
-                    break;
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                    mRvcTrack->adjustTrackParams(msg[0], msg[1]);
-                    break;
-                case 's':
-                    mRvcTrack->showAllRvcTrackParams();
+                    mRvcTrack->setDynamicTrackParams(msg[0], value);
                     break;
                 default:
                     break;
@@ -105,7 +85,7 @@ bool RvcSocket::threadLoop() {
     return false;
 }
 
-void RvcSocket::checkExit() {
+void RvcTrackReceiver::checkExit() {
     char value[PROPERTY_VALUE_MAX];
     property_get(RVC_EXIT_PROP, value, "0");
     int exitnow = atoi(value);
@@ -114,7 +94,7 @@ void RvcSocket::checkExit() {
     }
 }
 
-int RvcSocket::recv_msg(int fd, void *msg, int max_size)
+int RvcTrackReceiver::recv_msg(int fd, void *msg, int max_size)
 {
 	fd_set readfd;
 	FD_ZERO(&readfd);
