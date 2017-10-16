@@ -93,7 +93,7 @@ private:
     void setDynamicCoordinate(const TrackParams_t& params);
     double getGroundXCoordinate(double radius, double y);
     double getScreenXCoordinate(double x, double y);
-    double getScreenYCoordinate(double y);
+    double getScreenYCoordinate(double y, int value);
     struct Point {
         double fx;
         double fy;
