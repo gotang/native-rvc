@@ -65,7 +65,7 @@ class SurfaceComposerClient;
 class RvcTrack : public Thread, public IBinder::DeathRecipient
 {
 public:
-    RvcTrack(TrackParams_t& params);
+    RvcTrack(TrackParams_t& params, int camW, int camH);
     virtual ~RvcTrack();
     void setTrackParams(TrackParams_t* params);
     TrackParams_t getTrackParams();
@@ -75,6 +75,7 @@ public:
     void setThreeMPercent(int value);
     void adjustTrackParams(char adjustFlag, int value);
     void setDynamicTrackParams(int direction, int angle);
+    void adjustDynamicTrackParams(char adjustFlag, int value);
     void showAllRvcTrackParams();
 
     virtual bool        threadLoop();
@@ -93,7 +94,9 @@ private:
     void setDynamicCoordinate(const TrackParams_t& params);
     double getGroundXCoordinate(double radius, double y);
     double getScreenXCoordinate(double x, double y);
-    double getScreenYCoordinate(double y, int value);
+    double getScreenYCoordinate(double y);
+    int getImageWidth(double screenY, double groundY, int screenH);
+    int getImageHeight(double screenY, double groundY, int screenH);
     struct Point {
         double fx;
         double fy;
@@ -102,6 +105,10 @@ private:
     sp<SurfaceComposerClient> mSession;
     int mWidth;  // surface width
     int mHeight; // surface height
+    int mImageWidth;
+    int mImageHeight;
+    int mCamWidth;
+    int mCamHeight;
     int mFps;
     EGLDisplay mDisplay;
     EGLContext mContext;

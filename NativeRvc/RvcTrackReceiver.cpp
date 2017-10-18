@@ -74,6 +74,10 @@ bool RvcTrackReceiver::threadLoop() {
                     value = atoi(&msg[2]);
                     mRvcTrack->setDynamicTrackParams(msg[0], value);
                     break;
+                case 'L':
+                case 'R':
+                    mRvcTrack->adjustDynamicTrackParams(msg[0], msg[1]);
+                    break;
                 default:
                     break;
             };

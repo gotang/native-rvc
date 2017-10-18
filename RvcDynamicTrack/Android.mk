@@ -2,11 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
-    RvcTrack.cpp \
-    RvcCamera.cpp \
-    RvcSocket.cpp \
-    RvcTrackReceiver.cpp \
-    native_rvc_main.cpp
+    RVC_DynamicTrack.cpp
 
 LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES
 LOCAL_CFLAGS += -Wno-unused-parameter
@@ -18,18 +14,10 @@ LOCAL_SHARED_LIBRARIES := \
     liblog \
     libandroidfw \
     libutils \
-    libbinder \
-    libui \
-    libskia \
-    libEGL \
-    libGLESv1_CM \
-    libgui \
-    libtinyalsa \
-    libcamera_client \
-    libcamera_metadata
+    libbinder
 
 
-LOCAL_MODULE:= nativervc
+LOCAL_MODULE:= dynamic_rvc
 
 ifdef TARGET_32_BIT_SURFACEFLINGER
 LOCAL_32_BIT_ONLY := true

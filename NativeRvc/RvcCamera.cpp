@@ -38,10 +38,12 @@
 namespace android {
 // ---------------------------------------------------------------------------
 
-RvcCamera::RvcCamera(): Thread(false) {
+RvcCamera::RvcCamera(int camW, int camH): Thread(false) {
     ALOGD("RvcCamera RvcCamera");
     mSession = new SurfaceComposerClient();
     mPreviewStarted = false;
+    mCamWidth = camW;
+    mCamHeight = camH;
 }
 
 RvcCamera::~RvcCamera() {
@@ -168,7 +170,7 @@ void RvcCamera::initCameraParams() {
     ALOGD("preview format %s ", mCameraParams->getPreviewFormat());
     mCameraParams->setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV420SP);
     mCameraParams->setPreviewFrameRate(PREVIEW_FRAME_RATE);
-    mCameraParams->setPreviewSize(1920, 1080);
+    mCameraParams->setPreviewSize(mCamWidth, mCamHeight);
     mCamera->setParameters(mCameraParams->flatten());
     mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_NOOP);
     sp<IGraphicBufferProducer> gbp = mFlingerSurface->getIGraphicBufferProducer();

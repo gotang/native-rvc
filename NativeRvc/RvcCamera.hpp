@@ -23,7 +23,7 @@ class SurfaceControl;
 // ---------------------------------------------------------------------------
 class RvcCamera: public Thread, public IBinder::DeathRecipient {
 public:
-    RvcCamera();
+    RvcCamera(int camW, int camH);
     virtual ~RvcCamera();
     sp<SurfaceComposerClient> session() const;
     bool getPreviewState();
@@ -44,6 +44,8 @@ private:
     sp<SurfaceControl> mFlingerSurfaceControl;
     sp<Surface> mFlingerSurface;
     bool mPreviewStarted;
+    int mCamWidth;
+    int mCamHeight;
 };
 
 // ---------------------------------------------------------------------------

@@ -15,10 +15,11 @@
 #include "RvcTrack.hpp"
 #include "RvcCamera.hpp"
 #include "RvcSocket.hpp"
+#include "RvcTrackReceiver.hpp"
 
 using namespace android;
 
-#define OPT_LIST "a:b:c:d:L:W:D:H:M:N:sh"
+#define OPT_LIST "a:b:c:d:w:h:L:W:D:H:M:N:sS"
 
 struct opt_args {
 	bool showUsage;
@@ -33,16 +34,20 @@ struct opt_args {
     int camHeight;
     int camVisualAngle;
     int camHorAngle;
+    int cameraWidth;
+    int cameraHeight;
 };
 
 void show_usage(void)
 {
 	printf("Usage: native rvc [options]\n");
-	printf("    -h                  show this help.\n");
+	printf("    -S                  show this help.\n");
 	printf("    -a <angle>          left track deflection angle, < 90, default 30.\n");
 	printf("    -b <oneMPercent>    one meter line's percent from the bottom of the screen, < 100, default 10.\n");
 	printf("    -c <twoMPercent>    two meter line's percent from the bottom of the screen, < 100, default 20.\n");
 	printf("    -d <threeMPercent>  three meter line's percent from the bottom of the screen, < 100, default 30.\n");
+    printf("    -w <width>          camera width.\n");
+    printf("    -h <height>         camera height.\n");
     printf("    -L <wheelbase>      wheelbase(mm)\n");
     printf("    -W <axiallength>    axial length(mm)\n");
     printf("    -D <length>         The length of the rear axle from the end of the vehicle(mm).\n");
@@ -64,7 +69,7 @@ int parse_args(int argc, char *argv[], struct opt_args* args)
 	while ((ch=getopt(argc, argv, OPT_LIST)) != -1) {
 		char * endch;
 		switch (ch) {
-    		case 'h':
+    		case 'S':
     			args->showUsage = true;
     			show_usage();
     			break;
@@ -84,6 +89,14 @@ int parse_args(int argc, char *argv[], struct opt_args* args)
     			args->threeMPercent = atoi(optarg);
     			if (args->threeMPercent < 0) err=1;
     			break;
+            case 'w':
+                args->cameraWidth = atoi(optarg);
+                if (args->cameraWidth < 0) err=1;
+                break;
+            case 'h':
+                args->cameraHeight = atoi(optarg);
+                if (args->cameraHeight < 0) err=1;
+                break;
     		case 's':
     			args->useSocket = true;
     		    break;
@@ -123,7 +136,9 @@ int parse_args(int argc, char *argv[], struct opt_args* args)
 	}
 	return 0;
 }
-
+// ---------------------------------------------------------------------------
+//For exsample
+//nativervc -a 60 -b 20 -c 60 -d 70 -w 1920 -h 1080 -L 2660 -W 1650 -D 500 -H 600 -M 120 -N 30
 // ---------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
@@ -138,8 +153,8 @@ int main(int argc, char** argv)
 	if (args.showUsage) return 0;
     sp<ProcessState> proc(ProcessState::self());
     ProcessState::self()->startThreadPool();
-    //sp<RvcCamera> cam = new RvcCamera();
-    //while(!cam->getPreviewState()) usleep(500000);
+    sp<RvcCamera> cam = new RvcCamera(args.cameraWidth, args.cameraHeight);
+    while(!cam->getPreviewState()) usleep(500000);
     TrackParams_t params;
 	memset(&params, 0, sizeof(params));
     params.angle = args.angle;
@@ -156,11 +171,11 @@ int main(int argc, char** argv)
     params.camHeight = args.camHeight;
     params.camVisualAngle = args.camVisualAngle;
     params.camHorAngle = args.camHorAngle;
-    sp<RvcTrack> track = new RvcTrack(params);
+    sp<RvcTrack> track = new RvcTrack(params,args.cameraWidth, args.cameraHeight);
     if (args.useSocket) {
         sp<RvcSocket> socket = new RvcSocket(track);
     }
-
+    sp<RvcTrackReceiver> receiver = new RvcTrackReceiver(track);
     IPCThreadState::self()->joinThreadPool();
 
     return 0;
