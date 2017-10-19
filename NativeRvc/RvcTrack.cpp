@@ -57,8 +57,6 @@ RvcTrack::RvcTrack(TrackParams_t& params, int camW, int camH) : Thread(false) {
     mSession = new SurfaceComposerClient();
     mWidth = 0;
     mHeight = 0;
-    mImageWidth = 0;
-    mImageHeight = 0;
     mCamWidth = camW;
     mCamHeight = camH;
     mFps = 30;
@@ -235,68 +233,28 @@ double RvcTrack::getGroundXCoordinate(double radius, double y) {
     } else if (mDynamicTrack.direction == 'r') {
         x = circleX - sqrt(temp);
     }
-#if 0
-    double x = 0;
-    x = radius*radius - (y-mTrackParams.rearAxle)*(y-mTrackParams.rearAxle);
-#endif
     return x;
 }
 
 double RvcTrack::getScreenXCoordinate(double x, double y) {
     double X = 0;
     double temp1, temp2;
-#if 1
-    //X = (x/(y*tan(mTrackParams.camVisualAngle/2*M_PI/180)))*(mCamWidth*mImageHeight/(2*mCamHeight));
-    X = (x*mCamWidth*mImageHeight/mCamHeight*sin(mTrackParams.camHorAngle*M_PI/180))/(2*mTrackParams.camHeight*tan(mTrackParams.camVisualAngle/2*M_PI/180));
-#else
-    temp1 = mCamWidth*mTrackParams.camFocus/(mImageWidth*mTrackParams.camHeight)*x;
-    temp2 = cos(atan(y/mTrackParams.camHeight))/cos(mTrackParams.camHorAngle*M_PI/180-atan(y/mTrackParams.camHeight));
-    X = temp1/temp2 + mCamWidth/2;
-    return X*mWidth/mCamWidth;
-#endif
+    temp1 = x/(sqrt(mTrackParams.camHeight*mTrackParams.camHeight+y*y)*tan(mTrackParams.camVisualAngle/2*M_PI/180));
+    temp2 = temp1*mCamWidth/2;
+    X = temp2*mWidth/mCamWidth;
     return X;
 }
 
 double RvcTrack::getScreenYCoordinate(double y) {
     double Y = 0;
-    double temp = 0;
-#if 1
-    Y = mImageHeight*sin((mTrackParams.camVisualAngle/2+mTrackParams.camHorAngle)*M_PI/180-atan(mTrackParams.camHeight/y));
+    double temp;
+    Y = mCamHeight*sin((mTrackParams.camVisualAngle/2+mTrackParams.camHorAngle)*M_PI/180-atan(mTrackParams.camHeight/y));
     temp = cos(atan(mTrackParams.camHeight/y)-mTrackParams.camHorAngle*M_PI/180)*2*sin(mTrackParams.camVisualAngle/2*M_PI/180); 
-    Y = Y / temp;
-#else
-    temp = mCamHeight*mTrackParams.camFocus/mImageWidth*tan(mTrackParams.camHorAngle*M_PI/180-atan(y/mTrackParams.camHeight));
-    Y = temp + mCamHeight*mCamHeight/(2*mCamWidth);
-    return Y*mHeight/mCamHeight;
-#endif
+    Y = mHeight*Y/mCamHeight;
     return Y;
 }
 
-int RvcTrack::getImageWidth(double screenY, double groundY, int screenH) {
-    int height = 0;
-    double temp1, temp2;
-#if 0
-    temp1 = mCamHeight*mTrackParams.camFocus*tan(mTrackParams.camHorAngle*M_PI/180-atan(groundY/mTrackParams.camHeight));
-    temp2 = screenY-mCamHeight*mCamHeight/(2*mCamWidth);
-    ALOGD("temp1=%f, temp2=%f", temp1, temp2);
-    height = temp1 / temp2;
-#endif
-    return height;
-}
-
-int RvcTrack::getImageHeight(double screenY, double groundY, int screenH) {
-    int height = 0;
-    double temp;
-    temp = screenY*mHeight*cos(atan(mTrackParams.camHeight/groundY)-mTrackParams.camHorAngle*M_PI/180)*2*sin(mTrackParams.camVisualAngle/2*M_PI/180);
-    height = sqrt(temp/sin((mTrackParams.camVisualAngle/2+mTrackParams.camHorAngle)*M_PI/180-atan(mTrackParams.camHeight/groundY)));
-    return height;
-}
-
-
 void RvcTrack::setDynamicCoordinate(const TrackParams_t& params) {
-    mImageWidth = getImageWidth(mHeight*mTrackParams.oneMeterPercent/100, 500, mWidth);
-    mImageHeight = getImageHeight(mHeight*mTrackParams.oneMeterPercent/100, 500, mWidth);
-    ALOGD("mImageWidth=%d, mImageHeight=%d", mImageWidth, mImageHeight);
     double trackRC, trackRI, trackRO;
     trackRC = mTrackParams.wheelBase / tan(mDynamicTrack.angle*M_PI/180);
     trackRI = trackRC - mTrackParams.axialLength/2;
@@ -346,9 +304,10 @@ void RvcTrack::setDynamicCoordinate(const TrackParams_t& params) {
     for(int i=0; i<6; i++) {
         ALOGD("tempPoint i=%d, x=%f, y=%f", i, tempPoint[i].fx, tempPoint[i].fy);
     }
-    mPoint[1].fx = 200;
-    mPoint[0].fx = mWidth - 200;
-    mPoint[0].fy = mPoint[1].fy = mHeight;
+    mPoint[0].fx = mTrackParams.rearAxle/(mTrackParams.camHeight*tan(mTrackParams.camVisualAngle/2*M_PI/180))*mCamWidth/2;
+    mPoint[0].fx = mPoint[0].fx*mWidth/mCamWidth+mWidth/2;
+    mPoint[1].fx = mWidth - mPoint[0].fx;
+    mPoint[1].fy = mPoint[0].fy = mHeight;
     if (mDynamicTrack.direction == 'l') {
         ALOGD("direction is left");
         mPoint[3].fx = mWidth/2 +  tempPoint[0].fx;
@@ -415,7 +374,8 @@ void RvcTrack::drawTrack(const TrackParams_t& params) {
     } else {
         setDynamicCoordinate(params);
     }
-#if 0
+#if 1
+/*
     double trackRC, trackRI, trackRO;
     trackRC = mTrackParams.wheelBase / tan(mDynamicTrack.angle*M_PI/180);
     trackRI = trackRC - mTrackParams.axialLength/2;
@@ -427,7 +387,7 @@ void RvcTrack::drawTrack(const TrackParams_t& params) {
     SkRect oval2 = SkRect::MakeXYWH(mWidth-200, 800, (int)2*trackRI , (int)2*trackRI*sin(mTrackParams.camHorAngle*M_PI/180));
     mPaint->setColor(SK_ColorYELLOW);
     mCanvas->drawArc(oval2,180,60,false,*mPaint);
-
+*/
 
     double trackRC, trackRI, trackRO;
     trackRC = mTrackParams.wheelBase / tan(mDynamicTrack.angle*M_PI/180);
@@ -436,14 +396,14 @@ void RvcTrack::drawTrack(const TrackParams_t& params) {
 	ALOGD("trackRC=%f,trackRI=%f,trackRO=%f", trackRC,trackRI,trackRO);
 
     mPaint->setColor(SK_ColorRED);
-    mCanvas->drawCircle(trackRC,(float)mTrackParams.rearAxle,trackRC,*mPaint);
+    mCanvas->drawCircle(trackRC,-mTrackParams.rearAxle,trackRC,*mPaint);
     mPaint->setColor(SK_ColorBLUE);
-    mCanvas->drawCircle(trackRC,(float)mTrackParams.rearAxle,trackRI,*mPaint);
+    mCanvas->drawCircle(trackRC,-mTrackParams.rearAxle,trackRI,*mPaint);
     mPaint->setColor(SK_ColorYELLOW);
-    mCanvas->drawCircle(trackRC,(float)mTrackParams.rearAxle,trackRO,*mPaint);
+    mCanvas->drawCircle(trackRC,-mTrackParams.rearAxle,trackRO,*mPaint);
     ALOGD("radius=%f, x=%f,y=%d", trackRC, trackRC,mTrackParams.rearAxle);
     mPaint->setColor(SK_ColorGREEN);
-    mCanvas->drawPoint(trackRC,(float)mTrackParams.rearAxle,*mPaint);
+    mCanvas->drawPoint(trackRC,-mTrackParams.rearAxle,*mPaint);
     double x = 0;
     double x1 = 0;
     double y = 100;
@@ -451,33 +411,24 @@ void RvcTrack::drawTrack(const TrackParams_t& params) {
 
     //center
     temp = getGroundXCoordinate(trackRC,y);
-    x = trackRC + sqrt(temp);
-    x1 = trackRC - sqrt(temp);
     ALOGD("RC: x=%f, y=%f, x1=%f", x, y, x1);
-    mCanvas->drawPoint(x,y,*mPaint);
-    mCanvas->drawPoint(x1,y,*mPaint);
+    mCanvas->drawPoint(temp,y,*mPaint);
 
 
     //inside
     y = (100-mTrackParams.rearAxle)*trackRI/trackRC+mTrackParams.rearAxle;
     temp = getGroundXCoordinate(trackRI,y);
-    x = trackRC + sqrt(temp);
-    x1 = trackRC - sqrt(temp);
     ALOGD("RI: x=%f, y=%f, x1=%f", x, y, x1);
     mPaint->setColor(SK_ColorYELLOW);
-    mCanvas->drawPoint(x,y,*mPaint);
-    mCanvas->drawPoint(x1,y,*mPaint);
+    mCanvas->drawPoint(temp,y,*mPaint);
 
 
     //outside
     y = (100-mTrackParams.rearAxle)*trackRO/trackRC+mTrackParams.rearAxle;
     temp = getGroundXCoordinate(trackRO,y);
-    x = trackRC + sqrt(temp);
-    x1 = trackRC - sqrt(temp);
     ALOGD("RO: x=%f, y=%f, x1=%f", x, y, x1);
     mPaint->setColor(SK_ColorBLUE);
-    mCanvas->drawPoint(x,y,*mPaint);
-    mCanvas->drawPoint(x1,y,*mPaint);
+    mCanvas->drawPoint(temp,y,*mPaint);
 
 #else
     //red

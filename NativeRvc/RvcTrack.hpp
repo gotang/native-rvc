@@ -95,8 +95,6 @@ private:
     double getGroundXCoordinate(double radius, double y);
     double getScreenXCoordinate(double x, double y);
     double getScreenYCoordinate(double y);
-    int getImageWidth(double screenY, double groundY, int screenH);
-    int getImageHeight(double screenY, double groundY, int screenH);
     struct Point {
         double fx;
         double fy;
@@ -105,8 +103,6 @@ private:
     sp<SurfaceComposerClient> mSession;
     int mWidth;  // surface width
     int mHeight; // surface height
-    int mImageWidth;
-    int mImageHeight;
     int mCamWidth;
     int mCamHeight;
     int mFps;
