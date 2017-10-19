@@ -153,8 +153,8 @@ int main(int argc, char** argv)
 	if (args.showUsage) return 0;
     sp<ProcessState> proc(ProcessState::self());
     ProcessState::self()->startThreadPool();
-    sp<RvcCamera> cam = new RvcCamera(args.cameraWidth, args.cameraHeight);
-    while(!cam->getPreviewState()) usleep(500000);
+    //sp<RvcCamera> cam = new RvcCamera(args.cameraWidth, args.cameraHeight);
+    //while(!cam->getPreviewState()) usleep(500000);
     TrackParams_t params;
 	memset(&params, 0, sizeof(params));
     params.angle = args.angle;
