@@ -46,7 +46,7 @@ struct TrackParams_t {
     int rearAxle;
     int camHeight;
     int camVisualAngle;
-    int camHorAngle;
+    int camVerAngle;
 };
 
 struct DynamicTrack_t {
@@ -76,6 +76,7 @@ public:
     void adjustTrackParams(char adjustFlag, int value);
     void setDynamicTrackParams(int direction, int angle);
     void adjustDynamicTrackParams(char adjustFlag, int value);
+    DynamicTrack_t getDynamicTrackParams();
     void showAllRvcTrackParams();
 
     virtual bool        threadLoop();
@@ -88,11 +89,11 @@ public:
 
 private:
     void init(int w=0, int h=0); // size of the inner bitmap
-    void drawTrack(const TrackParams_t& params);
+    void drawTrack(const DynamicTrack_t& params);
     void renderToGL(); // coordinate to the surface
-    void setStaicCoordinate(const TrackParams_t& params);
-    void setDynamicCoordinate(const TrackParams_t& params);
-    double getGroundXCoordinate(double radius, double y);
+    void setStaicCoordinate();
+    void setDynamicCoordinate(const DynamicTrack_t& params);
+    double getGroundXCoordinate(const DynamicTrack_t& params, double radius, double y);
     double getScreenXCoordinate(double x, double y);
     double getScreenYCoordinate(double y);
     struct Point {

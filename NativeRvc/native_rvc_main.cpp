@@ -33,7 +33,7 @@ struct opt_args {
     int rearAxle;
     int camHeight;
     int camVisualAngle;
-    int camHorAngle;
+    int camVerAngle;
     int cameraWidth;
     int cameraHeight;
 };
@@ -52,8 +52,8 @@ void show_usage(void)
     printf("    -W <axiallength>    axial length(mm)\n");
     printf("    -D <length>         The length of the rear axle from the end of the vehicle(mm).\n");
     printf("    -H <height>         camera distance from ground(mm).\n");
-    printf("    -M <angle>          visual angle range of camera.\n");
-    printf("    -N <angle>          The angle between the camera center line and the horizontal plane.\n");
+    printf("    -M <angle>          the angle of camera visual.\n");
+    printf("    -N <angle>          The angle between the camera center line and the vertical plane.\n");
 	printf("    -s                  use socket to communicate with nativervc.\n");
 	printf("\n");
 }
@@ -121,8 +121,8 @@ int parse_args(int argc, char *argv[], struct opt_args* args)
                 if (args->camVisualAngle < 0) err=1;
                 break;
             case 'N':
-                args->camHorAngle = atoi(optarg);
-                if (args->camHorAngle < 0) err=1;
+                args->camVerAngle = atoi(optarg);
+                if (args->camVerAngle < 0) err=1;
                 break;
     		default:
     			ch = optopt;
@@ -170,7 +170,7 @@ int main(int argc, char** argv)
     params.rearAxle = args.rearAxle;
     params.camHeight = args.camHeight;
     params.camVisualAngle = args.camVisualAngle;
-    params.camHorAngle = args.camHorAngle;
+    params.camVerAngle = args.camVerAngle;
     sp<RvcTrack> track = new RvcTrack(params,args.cameraWidth, args.cameraHeight);
     if (args.useSocket) {
         sp<RvcSocket> socket = new RvcSocket(track);
