@@ -235,7 +235,7 @@ double RvcTrack::getGroundXCoordinate(const DynamicTrack_t& params, double radiu
 
 double RvcTrack::getScreenXCoordinate(double x, double y) {
     double X = 0;
-    X = x*((mCamWidth*mCamHeight/(2*mCamWidth*tan(mTrackParams.camVisualAngle/2*M_PI/180)))*cos(atan(y/mTrackParams.camHeight)))/(mTrackParams.camHeight*cos(atan(y/mTrackParams.camHeight)-mTrackParams.camVerAngle*M_PI/180));
+    X = x*((mCamHeight/(2*tan(mTrackParams.camVisualAngle/2*M_PI/180)))*cos(atan(y/mTrackParams.camHeight)))/(mTrackParams.camHeight*cos(atan(y/mTrackParams.camHeight)-mTrackParams.camVerAngle*M_PI/180));
     return X*(mWidth/mCamWidth);
 }
 
