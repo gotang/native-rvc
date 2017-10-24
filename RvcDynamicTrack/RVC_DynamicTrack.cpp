@@ -22,8 +22,7 @@ void show()
 	printf("Input Track Params\n");
 	printf("l [angle]          |left track deflection angle.\n");
 	printf("r [angle]          |right track deflection angle.\n");
-    printf("L                  |adjust left deflection angle +1.\n");
-    printf("R                  |adjust right deflection angle +1.\n");
+    printf("D                  |adjust wheel angle +1 or -1.\n");
     printf("q                  |quit.\n");
 }
 
@@ -79,8 +78,7 @@ int main(int argc, char** argv)
                 case 'r':
                     send_msg(socketfd, input, strlen(input)-1);
                     break;
-                case 'L':
-                case 'R':
+                case 'D':
                     char inputchar[2];
                     inputchar[0] = input[0];
                     char ch1, ch2;

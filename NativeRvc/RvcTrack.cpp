@@ -246,6 +246,7 @@ double RvcTrack::getScreenYCoordinate(double y) {
 }
 
 void RvcTrack::setDynamicCoordinate(const DynamicTrack_t& params) {
+    if (params.angle > 30) return;
     double trackRC, trackRI, trackRO;
     trackRC = mTrackParams.wheelBase/tan(params.angle*M_PI/180);
     trackRI = trackRC - mTrackParams.axialLength/2;
@@ -494,28 +495,31 @@ DynamicTrack_t RvcTrack::getDynamicTrackParams() {
 
 void RvcTrack::adjustDynamicTrackParams(char adjustFlag, int value) {
     mMutex->lock();
-    switch(adjustFlag) {
-        case 'L':
-            if (value == LEFT_KEY) {
-                mDynamicTrack.direction = 'l';
-                mDynamicTrack.angle++;
-            } else if (value == RIGHT_KEY) {
-                mDynamicTrack.direction = 'l';
-                mDynamicTrack.angle--;
+    if (value == LEFT_KEY) {
+        if (mDynamicTrack.direction == 'l') {
+            mDynamicTrack.angle++;
+        } else if (mDynamicTrack.direction == 'r') {
+            mDynamicTrack.angle--;
+            if (mDynamicTrack.angle == 0) {
+                mDynamicTrack.direction = '\0';
             }
-            break;
-        case 'R':
-            if (value == LEFT_KEY) {
-                mDynamicTrack.direction = 'r';
-                mDynamicTrack.angle--;
-            } else if (value == RIGHT_KEY) {
-                mDynamicTrack.direction = 'r';
-                mDynamicTrack.angle++;
+        } else {
+            mDynamicTrack.direction = 'l';
+            mDynamicTrack.angle++;
+        }
+    } else if (value == RIGHT_KEY) {
+        if (mDynamicTrack.direction == 'l') {
+            mDynamicTrack.angle--;
+            if (mDynamicTrack.angle == 0) {
+                mDynamicTrack.direction = '\0';
             }
-            break;
-        default:
-            break;
-    };
+        } else if (mDynamicTrack.direction == 'r') {
+            mDynamicTrack.angle++;
+        } else {
+            mDynamicTrack.direction = 'r';
+            mDynamicTrack.angle++;
+        }
+    }
     mMutex->unlock();
     ALOGD("adjustTrackParams adjustFlag=%d, value=%d", adjustFlag, value);
 }
