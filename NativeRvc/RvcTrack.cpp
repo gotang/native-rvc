@@ -246,7 +246,7 @@ double RvcTrack::getScreenYCoordinate(double y) {
 }
 
 void RvcTrack::setDynamicCoordinate(const DynamicTrack_t& params) {
-    if (params.angle > 30) return;
+    if (params.angle > 30) params.angle = 30;
     double trackRC, trackRI, trackRO;
     trackRC = mTrackParams.wheelBase/tan(params.angle*M_PI/180);
     trackRI = trackRC - mTrackParams.axialLength/2;
